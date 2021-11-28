@@ -1,1 +1,1 @@
-# Neural-Networks-
+# Neural-Networks: starter project

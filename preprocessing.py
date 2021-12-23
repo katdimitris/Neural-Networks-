@@ -1,6 +1,9 @@
 import numpy as np
 from sklearn import preprocessing
+from sklearn.metrics import classification_report
+from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.svm import SVC
 
 '''
 Function:
@@ -17,7 +20,10 @@ Function:
             -if future_mean < x_k-d then y=0 (which indicates a downtrend in the future)
             -if future_mean > x_k-d then y=1 (which indicates an uptrend in the future)
 '''
-def univariate_time_series_preprocessing(X, k, d):
+
+
+def input_output_split(X, k, d):
+
     total_instances = X.shape[0]
 
     # initialize N-k+1 windows of length: window_length
@@ -33,19 +39,15 @@ def univariate_time_series_preprocessing(X, k, d):
 
     # the remaining d values is the output window from which we extract label y
     y_window = np.array(window[:, k - d:])
-    y_mean = np.empty(total_instances)
-    for i in range(number_of_windows):
-        y_mean[i] = y_window[i].mean()
-
     y = np.zeros(number_of_windows)
     for i in range(number_of_windows):
-        if y_mean[i] > x[i, k - d - 1]:
+        if y_window[i].mean() > x[i, k - d - 1]:
             y[i] = 1
 
     return x, y
 
 
-def candle_time_series_preprocessing(X, k, d):
+def candle_features_targets_split(X, k, d):
     X.reset_index(level=0, inplace=True)
     total_instances = X.shape[0]
     number_of_windows = total_instances - k + 1
@@ -76,15 +78,54 @@ def candle_time_series_preprocessing(X, k, d):
     return x, y
 
 
-def univariate_normalize(x):
+def normalize(x):
+    x_norm = np.empty([x.shape[0], x.shape[1]])
+    for i in range(x.shape[0]):
+        standard_deviation = x[i].std()
+        mean = x[i].mean()
+        if standard_deviation==0:
+            x_norm[i].fill(0)
+        else:
+            for j in range(x.shape[1]):
+                x_norm[i][j] = (x[i][j] - mean) / standard_deviation
 
-    x_norm = x
-    scaler = MinMaxScaler()
-    for i in range():
-        norm = scaler.fit(x[i])
-        x_norm[i] = norm.transform(x)
-
-
-
-    print(x_norm)
     return x_norm
+
+
+def grid_search(X_train, X_test, y_train, y_test):
+    tuned_parameters = [
+        {"kernel": ["rbf"],
+         "gamma": [1e-3, 1e-4, 1e-5],
+         "C": [1, 2, 5, 10]}]
+
+    scores = ["precision", "recall"]
+
+    for score in scores:
+        print("# Tuning hyper-parameters for %s" % score)
+        print()
+
+        clf = GridSearchCV(SVC(), tuned_parameters, scoring="%s_macro" % score)
+        clf.fit(X_train, y_train)
+
+        print("Best parameters set found on development set:")
+        print()
+        print(clf.best_params_)
+        print()
+        print("Grid scores on development set:")
+        print()
+        means = clf.cv_results_["mean_test_score"]
+        stds = clf.cv_results_["std_test_score"]
+        for mean, std, params in zip(means, stds, clf.cv_results_["params"]):
+            print("%0.3f (+/-%0.03f) for %r" % (mean, std * 2, params))
+        print()
+
+        print("Detailed classification report:")
+        print()
+        print("The model is trained on the full development set.")
+        print("The scores are computed on the full evaluation set.")
+        print()
+        y_true, y_pred = y_test, clf.predict(X_test)
+        print(classification_report(y_true, y_pred))
+        print()
+
+    return clf.best_params_

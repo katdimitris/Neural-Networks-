@@ -80,8 +80,6 @@ def candle_features_targets_split(X, k, d):
 
 '''
 Function: normalize
-
-
 '''
 def normalize(x):
     x_norm = np.empty([x.shape[0], x.shape[1]])

@@ -102,8 +102,8 @@ def main():
     ''' NEAREST CENTROID ALGORITHM '''
 
     # Define and fit model
-    clf = NearestCentroid()
-    clf = clf.fit(X_train, y_train)
+    # clf = NearestCentroid()
+    # clf = clf.fit(X_train, y_train)
 
     # # Predict the test set
     # y_pred = clf.predict(X_test)

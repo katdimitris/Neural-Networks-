@@ -1,0 +1,98 @@
+import time
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.model_selection import train_test_split
+
+import preprocessing as prep
+import RBF
+
+
+# example with 3d points
+def test_example():
+    np.random.seed(10)
+
+    num_points = 500
+    coords_x = np.random.randint(0, 50, num_points)
+    coords_y = np.random.randint(0, 50, num_points)
+    coords_z = np.random.randint(0, 50, num_points)
+
+    labels = []
+    for i in range(num_points):
+        cond1 = (0 < coords_x[i] < 30 and 0 < coords_y[i] < 30 and 0 < coords_z[i] < 35)
+        cond2 = (15 < coords_x[i] < 50 and 20 < coords_y[i] < 50 and 15 < coords_z[i] < 50)
+        if cond1 or cond2:
+            labels.append(1)
+        else:
+            labels.append(-1)
+
+    X = np.array([coords_x, coords_y, coords_z])
+    X = X.T
+
+    y = np.array(labels)
+
+    print("X shape is: ", X.shape)
+    print("y shape is: ", y.shape)
+
+    print("Points belonging to class 0: ", np.count_nonzero(y == -1))
+    print("Points belonging to class 1: ", np.count_nonzero(y == 1))
+
+    fig = plt.figure(figsize=(10, 6), dpi=100)
+    plt.scatter(X[:, 0], X[:, 1], X[:, 2], c=labels)
+    plt.show()
+
+    X_train, X_test, y_train, y_test = train_test_split(X, labels, test_size=0.3, shuffle=False)
+    model = RBF.RBFN(k=10)
+
+    model.fit(X_train, y_train)
+
+    y_pred = model.predict(X_test)
+
+    print("y pred is: ", y_pred)
+    print("y true is: ", y_test)
+    print(classification_report(y_test, y_pred))
+
+
+def main():
+    # first try on btc
+    # start timer
+    t0 = time.time()
+
+    input_window_size = 48
+    output_window_size = 12
+    list_of_crypto = ['BTC']
+
+    inputs_merged, outputs_merged = prep.load_crypto_dataset(list_of_crypto, input_window_size, output_window_size)
+
+    X = np.array(inputs_merged)
+    y = np.array(outputs_merged)
+
+    # Split into train and test
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, shuffle=False)
+
+
+
+    # Define and fit model
+    model = RBF.RBFN(k=500)
+
+    model.fit(X_train, y_train)
+
+    y_pred = model.predict(X_test)
+
+    # Predict the test set
+    print("Training window size: ", input_window_size, "Prediction window size: ", output_window_size)
+    # svm.grid_search(X_train, y_train, X_test, y_test)
+    print(confusion_matrix(y_test, y_pred))
+    # plots.plot_confusion_matrix(confusion_matrix(y_test, y_pred))
+    print(classification_report(y_test, y_pred))
+
+    t1 = time.time()
+    total = t1 - t0
+    print("Total time: ", total)
+
+
+if __name__ == "__main__":
+    main()

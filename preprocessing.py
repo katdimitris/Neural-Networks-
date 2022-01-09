@@ -131,7 +131,7 @@ def candle_features_targets_split(X, k, d):
     return x, y
 
 '''
-Function: normalize
+Function: Takes as input a time series and it normalizes it 
 '''
 def normalize(x):
     x_norm = np.empty([x.shape[0], x.shape[1]])

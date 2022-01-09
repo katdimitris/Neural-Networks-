@@ -6,7 +6,6 @@ from time_series_distance_metrics import Distances
 '''
 Class kmeans: (unsupervised clustering algorithm)
 Clusters a unlabeled dataset into k different clusters 
-Each data point is assigned to the cluster with the nearest mean
 '''
 class Kmeans:
     def __init__(self, k=5, max_iters=100, distance_metric='euclidean'):

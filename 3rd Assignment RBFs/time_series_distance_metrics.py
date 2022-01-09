@@ -1,14 +1,11 @@
 import numpy as np
-
-import dtw
-from sktime.distances import elastic_cython
 from sktime.distances import _dtw
 
 
 def euclidean_distance(x1, x2):
     return np.sqrt(np.sum((x1 - x2) ** 2))
 
-
+# implementation of dtw algorithm
 def dtw_distance(x1, x2):
     length = len(x1)
     dtw_matrix = np.zeros((length + 1, length + 1))
@@ -34,12 +31,10 @@ class Distances:
         if self.distance_metric == 'euclidean':
             return euclidean_distance(x1, x2)
 
-        # dtw implementation
+        # dtw usage of sktime distance (kinda works)
         if self.distance_metric == 'dtw':
-            # dist, _, _, _ = dtw.accelerated_dtw(x1, x2, dist=euclidean_distance)
             x1 = x1.reshape((x1.shape[0], 1))
             x2 = x2.reshape((x2.shape[0], 1))
-            # dist = elastic_cython.wdtw_distance(x1, x2)
             obj = _dtw._DtwDistance()
             dist = obj.distance(x1, x2)
             return dist

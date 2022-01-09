@@ -8,7 +8,7 @@ from torch.utils.data import Dataset, DataLoader
 
 import preprocessing as prep
 
-# device config
+''' ------------------------NOT WORKING------------------------------------- '''
 class MLP():
 
     def __init__(self, input_size, hidden_size=100, num_classes=2, epochs=10, bs=32, lr=0.01, device='cuda'):

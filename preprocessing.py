@@ -1,7 +1,17 @@
 import numpy as np
 import pandas as pd
 
-
+'''
+Function: load_crypto_dataset
+    This function takes as input the parameters:
+        -crypto: list of crypto names to be loaded from the csv file (default value=['BTC'])
+        -input_window_size: the dimension of input size (default value = 48 hours)
+        -output_window_size: price duration (measured in hours) to be averaged in order to 
+         define an up or down label(default value = 12 hours)
+    The function loads hourly crypto prices and splits them into time series samples of size=input_window_size.
+    Then it labels them according to the function 'input_output_split'.
+    It returns all input vectors X[i], and their binary label y[i].
+'''
 def load_crypto_dataset(crypto=None, input_window_size=48, output_window_size=12):
     if crypto is None:
         crypto = ['BTC']
@@ -9,7 +19,6 @@ def load_crypto_dataset(crypto=None, input_window_size=48, output_window_size=12
     total_window_size = input_window_size + output_window_size
 
     # Define the list of crypto to be analyzed and the currency
-    crypto = ['BTC']
     currency = 'USDT'
 
     # define the path of the dataset
@@ -20,36 +29,36 @@ def load_crypto_dataset(crypto=None, input_window_size=48, output_window_size=12
     for c in crypto:
         pairs.append(f'{c}{currency}')
 
-    input_arrays = []
-    output_arrays = []
+    X_pairs = []
+    y_pairs = []
 
     for pair in pairs:
         # data loading
         data = pd.read_feather(path + f'{pair}.feather')
         data.set_index('date', inplace=True)
         data.dropna(inplace=True)
-        x, y = input_output_split(X=data['close'], k=total_window_size, d=output_window_size)
-        x_norm = normalize(x)
+        x_pair, y_pair = input_output_split(X=data['close'], k=total_window_size, d=output_window_size)
+        x_pair_norm = normalize(x_pair)
 
         # class distribution for each cryptocurrency pair
-        print(f"{pair} samples in class -1: ", np.count_nonzero(y == -1))
-        print(f"{pair} samples in class 1: ", np.count_nonzero(y == 1))
+        print(f"{pair} samples in class -1: ", np.count_nonzero(y_pair == -1))
+        print(f"{pair} samples in class 1: ", np.count_nonzero(y_pair == 1))
 
-        input_arrays.append(x_norm)
-        output_arrays.append(y)
+        X_pairs.append(x_pair_norm)
+        y_pairs.append(y_pair)
 
-    inputs_merged = []
-    outputs_merged = []
+    X = []
+    y = []
 
-    for i in range(0, len(input_arrays)):
-        inputs_merged.extend(input_arrays[i])
-        outputs_merged.extend(output_arrays[i])
+    for i in range(0, len(X_pairs)):
+        X.extend(X_pairs[i])
+        y.extend(y_pairs[i])
 
-    return inputs_merged, outputs_merged
+    return X, y
 
 
 '''
-Function:
+Function: input_output_split
     This function takes as input the parameters:
         -X=array of univariate time series X=(x_0, x_1, ..., x_N-1) of size=N
         -k=size of windows to be created
@@ -63,7 +72,6 @@ Function:
             -if future_mean < x_k-d then y=0 (which indicates a downtrend in the future)
             -if future_mean > x_k-d then y=1 (which indicates an uptrend in the future)
 '''
-
 def input_output_split(X, k, d):
 
     total_instances = X.shape[0]

@@ -1,25 +1,28 @@
 import time
+
+import torch
+from torch import nn
+
 import MLP
 import numpy as np
 from sklearn.model_selection import train_test_split
 
+import MLP
 import preprocessing as prep
 
 def main():
     # start timer
     t0 = time.time()
 
-    dataset_obj = MLP.CryptoDataset(crypto=['BTC'], input_window_size=48, output_window_size=12)
-    dataset = dataset_obj.get_dataset()
-    train_dataset = dataset[:int(dataset_obj.get_length() * 0.8)]
-    test_dataset = dataset[int(dataset_obj.get_length() * 0.8) + 1:]
-    x_train, y_train = train_dataset
-    #x_test, y_test = test_dataset
-    print(x_train.shape)
-   # print(x_test.shape)
-    # Split into train and test
-   # X_train, X_test, y_train, y_test = train_test_split(inputs_merged, outputs_merged, test_size=0.3, shuffle=False)
+    X, y = prep.load_crypto_dataset()
+    X = np.array(X)
+    y = np.array(y)
 
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, shuffle=False)
+    print(X_train.shape[0])
+    model = MLP.MLP_classifier()
+    model.fit(X_train, y_train)
+    model.predict(X_test, y_test)
 
 
     t1 = time.time()

@@ -92,7 +92,7 @@ def input_output_split(X, k, d):
     y = np.ones(number_of_windows)
     for i in range(number_of_windows):
         if y_window[i].mean() <= x[i, k - d - 1]:
-            y[i] = -1
+            y[i] = 0
 
     return x, y
 
